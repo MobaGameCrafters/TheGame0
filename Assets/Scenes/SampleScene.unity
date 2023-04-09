@@ -406,7 +406,7 @@ GameObject:
   - component: {fileID: 615442267}
   m_Layer: 0
   m_Name: Archer
-  m_TagString: Untagged
+  m_TagString: Character
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -456,6 +456,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 3
+  arrow: {fileID: 3272130398461263088, guid: 078f26132f8c3144a9259035ac6089dc, type: 3}
 --- !u!136 &615442267
 CapsuleCollider:
   m_ObjectHideFlags: 0
