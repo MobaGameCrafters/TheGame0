@@ -1,64 +1,55 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using Unity.VisualScripting;
 using UnityEngine;
 
 public class ArrowController : MonoBehaviour
 {
-    private float moveSpeed = 10f;
-    private Vector3 endPosition = Vector3.zero;
-    private float totalDistance;
-    private float startTime;
+    private float moveSpeed = 1f;
     private Vector2 startPosition;
     public int damage = 10;
     Rigidbody rb;
-    // Start is called before the first frame update
+    Vector3 forward;
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
         startPosition = transform.position;
-        endPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        endPosition.z = transform.position.z;
-        startTime = Time.time;
-        totalDistance = Vector2.Distance(transform.position, endPosition);
-        Vector3 targetDirection = endPosition - transform.position;
-
-        float angle = Mathf.Atan2(targetDirection.x, targetDirection.y) * Mathf.Rad2Deg;
-        float adjustedAngle = angle;
-        if (endPosition.x > startPosition.x)
+        forward = transform.forward;
+         forward.z = 0f;
+        forward.y *= (-1);
+        forward.x *= (-1);
+        forward.Normalize();
+        Transform objectTransform = gameObject.transform;
+        
+        float xAngle = objectTransform.rotation.eulerAngles.x;
+         float zAngle = objectTransform.rotation.eulerAngles.z;
+        if(forward.x < 0f)
         {
-            adjustedAngle = -angle;
+            xAngle= 180-xAngle;
         }
-        Quaternion targetRotation = Quaternion.Euler(new Vector3(90- adjustedAngle, angle, 0));
-        rb.MoveRotation(targetRotation);
+        Quaternion newRotation = Quaternion.Euler(xAngle, -90, zAngle);
+        objectTransform.rotation = newRotation;
+        rb.MovePosition(startPosition);
     }
     private void Update()
     {
         
     }
 
-    // Update is called once per frame
-
     private void FixedUpdate()
     {
-
-            float journeyLength = totalDistance;
-            float distCovered = (Time.time - startTime) * moveSpeed;
-            float fracJourney = distCovered / journeyLength;
-            Vector2 newPosition = Vector3.Lerp(startPosition, endPosition, fracJourney);
-            rb.MovePosition(newPosition);
-        if (fracJourney >= 1f)
-        {
-            Destroy(gameObject);
-        }
+        rb.velocity = forward;
+        rb.velocity = forward * rb.velocity.magnitude;
     }
     void OnTriggerEnter(Collider other)
-    {
-        PlayerController character = other.GetComponent<PlayerController>();
-        if (character != null)
-        {
-            character.TakeDamage(damage);
-            Destroy(gameObject); // Destroy the arrow when it hits the character
-        }
-    }
+     {
+         NetworkObject arrow = gameObject.GetComponent<NetworkObject>();
+         PlayerController character = other.GetComponent<PlayerController>();
+         if (character != null && arrow.OwnerClientId != character.OwnerClientId)
+         {
+             character.TakeDamage(damage);
+             Destroy(gameObject); 
+         }
+     }
 }
