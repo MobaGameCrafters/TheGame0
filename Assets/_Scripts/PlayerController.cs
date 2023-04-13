@@ -17,6 +17,7 @@ public class PlayerController : NetworkBehaviour
     private float startTime; 
     private NetworkVariable<Vector3> startPosition = new NetworkVariable<Vector3>(Vector3.zero, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     private NetworkVariable<Vector3> endPosition = new NetworkVariable<Vector3>(Vector3.zero, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    private NetworkVariable<Vector3> target = new NetworkVariable<Vector3>(Vector3.zero, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     Rigidbody rb;
     private float health=20;
     private NetworkVariable<Quaternion> myQuaternion = new NetworkVariable<Quaternion>(Quaternion.identity, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
@@ -43,13 +44,14 @@ public class PlayerController : NetworkBehaviour
             if (Physics.Raycast(ray, out RaycastHit hit))
             {
                 // Check if the hit object is a character
-                if (hit.collider.CompareTag("Character") && gameObject.GetComponent<NetworkObject>().OwnerClientId != hit.collider.GetComponent<NetworkObject>().OwnerClientId)
+                if ((hit.collider.CompareTag("Character") && gameObject.GetComponent<NetworkObject>().OwnerClientId != hit.collider.GetComponent<NetworkObject>().OwnerClientId)|| hit.collider.CompareTag("Minion"))
                 {
                     isShooting.Value = true;
                     isRunning.Value = false;
                     Rotate();
                     myQuaternion.Value = Quaternion.FromToRotation(Vector3.forward, transform.forward);
                     myQuaternion.Value.Normalize();
+                    target.Value = endPosition.Value;
                     Invoke(nameof(FireArrow), 0.5f);
                 }
             }else
@@ -92,7 +94,7 @@ public class PlayerController : NetworkBehaviour
     private void FireArrow()
     {
         Vector3 forward = Vector3.forward;
-        Vector3 other = -endPosition.Value + transform.position;
+        Vector3 other = -target.Value + transform.position;
         Quaternion arrowRotation = Quaternion.FromToRotation(forward, other);
         FireArrowServerRpc(arrowRotation, new ServerRpcParams());
         isShooting.Value = false;

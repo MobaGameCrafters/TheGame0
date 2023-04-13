@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class ArrowController : MonoBehaviour
 {
-    private float moveSpeed = 1f;
+    private float moveSpeed = 300f;
     private Vector2 startPosition;
     public int damage = 10;
     Rigidbody rb;
@@ -40,7 +40,7 @@ public class ArrowController : MonoBehaviour
     private void FixedUpdate()
     {
         rb.velocity = forward;
-        rb.velocity = forward * rb.velocity.magnitude;
+        rb.velocity = forward * moveSpeed*Time.fixedDeltaTime;
     }
     void OnTriggerEnter(Collider other)
      {
@@ -51,5 +51,11 @@ public class ArrowController : MonoBehaviour
              character.TakeDamage(damage);
              Destroy(gameObject); 
          }
-     }
+         MutantController minion = other.GetComponent<MutantController>();
+        if (minion != null)
+        {
+            minion.TakeDamage(damage);
+            Destroy(gameObject);
+        }
+    }
 }
