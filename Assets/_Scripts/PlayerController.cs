@@ -2,34 +2,56 @@ using System;
 using TMPro;
 using Unity.Netcode;
 using Unity.VisualScripting;
+using Unity.VisualScripting.Antlr3.Runtime.Tree;
 using UnityEngine;
+using UnityEngine.AI;
 
-public class PlayerController : NetworkBehaviour
-{
-    [SerializeField] private float speed = 10f;
+
+public class PlayerController : NetworkBehaviour {
+
     [SerializeField] private GameObject arrow;
     [SerializeField] private GameInput gameInput;
+    [SerializeField] private float RotationPerFrame = 1f;
+    private float speed = 7f;
+
+
     private NetworkVariable<bool> isRunning = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     private NetworkVariable<bool> isShooting = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     //private float totalDistance; 
-    private float MainAttackFireTime=0; 
+    private float MainAttackFireTime = 0;
     private NetworkVariable<Vector3> startPosition = new NetworkVariable<Vector3>(Vector3.zero, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     private NetworkVariable<Vector3> endPosition = new NetworkVariable<Vector3>(Vector3.zero, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     private NetworkVariable<Vector3> target = new NetworkVariable<Vector3>(Vector3.zero, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     Rigidbody rb;
-    private float health=21;
+    private float health = 21;
     private Vector3 direction;
-    private NetworkVariable<Quaternion> myQuaternion = new NetworkVariable<Quaternion>(Quaternion.identity, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    //private NetworkVariable<Quaternion> myQuaternion = new NetworkVariable<Quaternion>(Quaternion.identity, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    private NavMeshAgent navMeshAgent;
 
-
+    private void Awake()
+    {
+        navMeshAgent = GetComponent<NavMeshAgent>();
+    }
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
+        navMeshAgent.speed = speed;
+        navMeshAgent.autoBraking = true;
+
+
+
     }
     private void Update()
     {
         if (!IsOwner || !Application.isFocused) return;
-        if (Input.GetMouseButtonDown(0) && Time.time- MainAttackFireTime>1)
+        /* navMeshAgent.speed = speed;
+         navMeshAgent.angularSpeed = 999f;
+         navMeshAgent.acceleration = 999f;
+         navMeshAgent.stoppingDistance = 0;
+         navMeshAgent.autoBraking = true;*/
+
+
+        if (Input.GetMouseButtonDown(0) && Time.time - MainAttackFireTime > 1)
         {
             MainAttackFireTime = Time.time;
             isShooting.Value = true;
@@ -37,16 +59,38 @@ public class PlayerController : NetworkBehaviour
             Rotate();
             startPosition.Value = transform.position;
             gameInput.SetMovementPosition(startPosition.Value);
-            myQuaternion.Value = Quaternion.FromToRotation(Vector3.forward, transform.forward);
-            myQuaternion.Value.Normalize();
+            //myQuaternion.Value = Quaternion.FromToRotation(Vector3.forward, transform.forward);
+            // myQuaternion.Value.Normalize();
             target.Value = gameInput.GetTargetPosition();
             Invoke(nameof(FireArrow), 0.5f);
         }
 
+        if (Input.GetMouseButtonDown(1))
+        {
+            RaycastHit hit;
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out hit))
+            {
+                Debug.Log("The ray hit at: " + hit.point);
+                navMeshAgent.destination = hit.point;
+
+
+            }
+        }
+        float distanceToTarget = Vector3.Distance(transform.position, navMeshAgent.destination);
+        if (distanceToTarget < 0.1f)
+        {
+            isRunning.Value = false;
+        }
+        else
+        {
+            isRunning.Value = true;
+            transform.forward = navMeshAgent.velocity; //new Vector3(navMeshAgent.velocity.x, navMeshAgent.velocity.y, navMeshAgent.velocity.z);
+        }
     }
 
 
-    private void FixedUpdate()
+    /*private void FixedUpdate()
     {
         Vector3 targetPosition = gameInput.GetMovementVector();
         endPosition.Value = new(targetPosition.x, targetPosition.y, 0);
@@ -57,6 +101,7 @@ public class PlayerController : NetworkBehaviour
         {
 
             Vector3 newPosition = rb.position + direction * speed * Time.fixedDeltaTime;
+            Debug.Log(transform.position + " - " + newPosition);
             rb.MovePosition(newPosition);
 
             isRunning.Value = true;
@@ -67,7 +112,7 @@ public class PlayerController : NetworkBehaviour
         {
             isRunning.Value = false;
         }
-    }
+    }*/
     public void TakeDamage(int damage)
     {
         health = Math.Max(0, health - damage);
@@ -118,4 +163,6 @@ public class PlayerController : NetworkBehaviour
     {
         return endPosition.Value;
     }
+
+
 }
