@@ -6,107 +6,99 @@ using UnityEngine;
 
 public class PlayerController : NetworkBehaviour
 {
-[SerializeField] private float speed = 10f;
+    [SerializeField] private float speed = 10f;
     [SerializeField] private GameObject arrow;
-    [SerializeField] TextMeshProUGUI hpBar;
-    private Camera  _mainCamera;
-    private Vector3 _mouseInput = Vector3.zero;
-    private NetworkVariable<bool> isRunning = new NetworkVariable<bool>(false,NetworkVariableReadPermission.Everyone,NetworkVariableWritePermission.Owner);
+    [SerializeField] private GameInput gameInput;
+    private NetworkVariable<bool> isRunning = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     private NetworkVariable<bool> isShooting = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
-    private float totalDistance; 
-    private float startTime; 
+    //private float totalDistance; 
+    private float MainAttackFireTime=0; 
     private NetworkVariable<Vector3> startPosition = new NetworkVariable<Vector3>(Vector3.zero, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     private NetworkVariable<Vector3> endPosition = new NetworkVariable<Vector3>(Vector3.zero, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    private NetworkVariable<Vector3> target = new NetworkVariable<Vector3>(Vector3.zero, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     Rigidbody rb;
-    private float health=20;
+    private float health=21;
+    private Vector3 direction;
     private NetworkVariable<Quaternion> myQuaternion = new NetworkVariable<Quaternion>(Quaternion.identity, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
-    private void Initialize() {
-        _mainCamera = Camera.main;
-    }
 
-    public override void OnNetworkSpawn(){
-        Initialize();
-    }
-    private void Update() {
+
+    private void Start()
+    {
         rb = GetComponent<Rigidbody>();
+    }
+    private void Update()
+    {
         if (!IsOwner || !Application.isFocused) return;
-  
-            //Movement
-            if (Input.GetMouseButtonDown(1))
+        if (Input.GetMouseButtonDown(0) && Time.time- MainAttackFireTime>1)
         {
-
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            _mouseInput.x = Input.mousePosition.x;
-            _mouseInput.y = Input.mousePosition.y;
-            endPosition.Value = _mainCamera.ScreenToWorldPoint(_mouseInput);
+            MainAttackFireTime = Time.time;
+            isShooting.Value = true;
+            isRunning.Value = false;
+            Rotate();
             startPosition.Value = transform.position;
-            if (Physics.Raycast(ray, out RaycastHit hit))
-            {
-                // Check if the hit object is a character
-                if (hit.collider.CompareTag("Character") && gameObject.GetComponent<NetworkObject>().OwnerClientId != hit.collider.GetComponent<NetworkObject>().OwnerClientId)
-                {
-                    isShooting.Value = true;
-                    isRunning.Value = false;
-                    Rotate();
-                    myQuaternion.Value = Quaternion.FromToRotation(Vector3.forward, transform.forward);
-                    myQuaternion.Value.Normalize();
-                    Invoke(nameof(FireArrow), 0.5f);
-                }
-            }else
-            {
-                isRunning.Value = endPosition.Value != transform.position;
-                totalDistance = Vector2.Distance(transform.position, endPosition.Value);
-                startTime = Time.time;
-            }
+            gameInput.SetMovementPosition(startPosition.Value);
+            myQuaternion.Value = Quaternion.FromToRotation(Vector3.forward, transform.forward);
+            myQuaternion.Value.Normalize();
+            target.Value = gameInput.GetTargetPosition();
+            Invoke(nameof(FireArrow), 0.5f);
+        }
 
-        } }
+    }
 
 
     private void FixedUpdate()
     {
-        if (isRunning.Value)
-            {
-                // calculate the time it should take to run the total distance
-                float journeyLength = totalDistance;
-                float distCovered = (Time.time - startTime) * speed;
-                float fracJourney = distCovered / journeyLength;
-            Vector2 newPosition = Vector3.Lerp(startPosition.Value, endPosition.Value, fracJourney);
+        Vector3 targetPosition = gameInput.GetMovementVector();
+        endPosition.Value = new(targetPosition.x, targetPosition.y, 0);
+        direction = endPosition.Value - transform.position;
+        direction.Normalize();
+        float distanceToTarget = Vector3.Distance(transform.position, endPosition.Value);
+        if (distanceToTarget > 0.1f)
+        {
+
+            Vector3 newPosition = rb.position + direction * speed * Time.fixedDeltaTime;
             rb.MovePosition(newPosition);
-            // Rotate
-            if (endPosition.Value != transform.position)
-            {
-                Rotate();
-            }
-            // check if we've reached the target position
-            if (fracJourney >= 1f && gameObject.GetComponent<NetworkObject>().OwnerClientId == NetworkManager.LocalClientId)
-            {
-                isRunning.Value = false;
-            }
+
+            isRunning.Value = true;
+            Rotate();
+
+        }
+        else
+        {
+            isRunning.Value = false;
         }
     }
     public void TakeDamage(int damage)
     {
-        health= Math.Max(0,health-damage);
-        Debug.Log(health);
+        health = Math.Max(0, health - damage);
     }
     private void FireArrow()
     {
         Vector3 forward = Vector3.forward;
-        Vector3 other = -endPosition.Value + transform.position;
+        Vector3 other = -target.Value + transform.position;
         Quaternion arrowRotation = Quaternion.FromToRotation(forward, other);
         FireArrowServerRpc(arrowRotation, new ServerRpcParams());
         isShooting.Value = false;
     }
     [ServerRpc]
-     private void FireArrowServerRpc(Quaternion arrowRotation,ServerRpcParams serveRpcParams)
+    private void FireArrowServerRpc(Quaternion arrowRotation, ServerRpcParams serveRpcParams)
     {
-        
+
         GameObject newArrow = Instantiate(arrow, startPosition.Value, arrowRotation);
         newArrow.GetComponent<NetworkObject>().SpawnWithOwnership(serveRpcParams.Receive.SenderClientId);
-     }
+    }
     private void Rotate()
     {
-        Vector3 targetDirection = endPosition.Value - transform.position;
+        Vector3 targetDirection;
+        if (!isRunning.Value)
+        {
+            targetDirection = target.Value - transform.position;
+        }
+        else
+        {
+
+            targetDirection = endPosition.Value - transform.position;
+        }
         float angle = Mathf.Atan2(targetDirection.x, targetDirection.y) * Mathf.Rad2Deg;
         Quaternion targetRotation = Quaternion.Euler(new Vector3(0, angle, 0));
 
