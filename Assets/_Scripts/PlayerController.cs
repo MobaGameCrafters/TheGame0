@@ -1,3 +1,4 @@
+using Cinemachine;
 using System;
 using TMPro;
 using Unity.Netcode;
@@ -5,13 +6,17 @@ using Unity.VisualScripting;
 using Unity.VisualScripting.Antlr3.Runtime.Tree;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UIElements;
 
 
 public class PlayerController : NetworkBehaviour {
 
     [SerializeField] private GameObject arrow;
     [SerializeField] private GameInput gameInput;
-    [SerializeField] private float RotationPerFrame = 1f;
+    //[SerializeField] private GameObject cameraContainer;
+    //[SerializeField]//
+    [SerializeField] CinemachineVirtualCamera followCamera;
+    // private CameraScript cameraScript;
     private float speed = 7f;
 
 
@@ -28,15 +33,24 @@ public class PlayerController : NetworkBehaviour {
     //private NetworkVariable<Quaternion> myQuaternion = new NetworkVariable<Quaternion>(Quaternion.identity, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     private NavMeshAgent navMeshAgent;
 
+
+
+
+
     private void Awake()
     {
         navMeshAgent = GetComponent<NavMeshAgent>();
+        // cameraScript = cameraContainer.SetPlayer();
+
+
+
     }
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
         navMeshAgent.speed = speed;
         navMeshAgent.autoBraking = true;
+
 
 
 
@@ -71,7 +85,7 @@ public class PlayerController : NetworkBehaviour {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out hit))
             {
-                Debug.Log("The ray hit at: " + hit.point);
+                //Debug.Log("The ray hit at: " + hit.point);
                 navMeshAgent.destination = hit.point;
 
 
@@ -87,6 +101,20 @@ public class PlayerController : NetworkBehaviour {
             isRunning.Value = true;
             transform.forward = navMeshAgent.velocity; //new Vector3(navMeshAgent.velocity.x, navMeshAgent.velocity.y, navMeshAgent.velocity.z);
         }
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+
+            followCamera.Priority = 20;
+
+
+
+        }
+        if (Input.GetKeyUp(KeyCode.Space))
+
+        { followCamera.Priority = 0; }
+
+
     }
 
 
@@ -163,6 +191,7 @@ public class PlayerController : NetworkBehaviour {
     {
         return endPosition.Value;
     }
+
 
 
 }

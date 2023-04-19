@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Character
   - Minion
+  - FollowCamera
   layers:
   - Default
   - TransparentFX
