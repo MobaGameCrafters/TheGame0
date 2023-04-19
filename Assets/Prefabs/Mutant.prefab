@@ -1160,6 +1160,7 @@ GameObject:
   - component: {fileID: 4936573401571717378}
   - component: {fileID: 2739007154197447624}
   - component: {fileID: 6088110321678287288}
+  - component: {fileID: -5752316030547247920}
   m_Layer: 0
   m_Name: Mutant
   m_TagString: Minion
@@ -1175,7 +1176,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8168112420068838274}
   m_LocalRotation: {x: 0, y: 0.9848078, z: -0, w: -0.17364809}
-  m_LocalPosition: {x: 4, y: 3, z: 0}
+  m_LocalPosition: {x: 4, y: 0, z: 0}
   m_LocalScale: {x: 0.7, y: 0.7, z: 0.7}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1197,6 +1198,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a821b5fd199dcb4dae396786f463a2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  healthBar: {fileID: 8869426493413040992}
 --- !u!54 &7364866261784350564
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1243,7 +1245,7 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.7
+  m_Radius: 1
   m_Height: 1
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
@@ -1311,6 +1313,29 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controller: {fileID: 5870831755638508451}
+--- !u!136 &-5752316030547247920
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8168112420068838274}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 5
+  m_Height: 1
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &8259214368257419481
 GameObject:
   m_ObjectHideFlags: 0
@@ -1538,3 +1563,14 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1256917814899264970, guid: 809b40f60457c8a4caa3f305a5588233, type: 3}
   m_PrefabInstance: {fileID: 159826320960274171}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &8869426493413040992 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8728355780397014427, guid: 809b40f60457c8a4caa3f305a5588233, type: 3}
+  m_PrefabInstance: {fileID: 159826320960274171}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f4d30f962eaa9d4f8ea741809b04dc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

@@ -9,11 +9,11 @@ public class GameInput : MonoBehaviour {
     private Vector3 targetPosition = Vector3.zero;
 
 
-    private void OnLeftClick()
+   /* private void OnLeftClick()
     {
         targetPosition = Mouse.current.position.ReadValue();
         targetPosition = Camera.main.ScreenToWorldPoint(targetPosition);
-    }
+    }*/
     private void OnRightClick()
     {/*
         movePosition = Mouse.current.position.ReadValue();
