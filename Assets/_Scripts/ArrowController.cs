@@ -16,8 +16,8 @@ public class ArrowController : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         startPosition = transform.position;
         forward = transform.forward;
-         forward.z = 0f;
-        forward.y *= (-1);
+         //forward.z = 0f;
+        //forward.y *= (-1);
         forward.x *= (-1);
         forward.Normalize();
         Transform objectTransform = gameObject.transform;

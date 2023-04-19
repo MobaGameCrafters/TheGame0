@@ -58,10 +58,21 @@ public class PlayerController : NetworkBehaviour {
             isRunning.Value = false;
             Rotate();
             startPosition.Value = transform.position;
-            gameInput.SetMovementPosition(startPosition.Value);
+            // gameInput.SetMovementPosition(startPosition.Value);
             //myQuaternion.Value = Quaternion.FromToRotation(Vector3.forward, transform.forward);
             // myQuaternion.Value.Normalize();
-            target.Value = gameInput.GetTargetPosition();
+            RaycastHit hit;
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out hit))
+            {
+               // Debug.Log("The ray hit at: " + hit.point);
+                navMeshAgent.destination = hit.point;
+
+
+            }
+            transform.forward = Vector3.zero;
+            target.Value = navMeshAgent.destination;
+            //Debug.Log(target.Value.x+" "+target.Value.y+" "+target.Value.z);
             Invoke(nameof(FireArrow), 0.5f);
         }
 
@@ -71,7 +82,7 @@ public class PlayerController : NetworkBehaviour {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out hit))
             {
-                Debug.Log("The ray hit at: " + hit.point);
+                //Debug.Log("The ray hit at: " + hit.point);
                 navMeshAgent.destination = hit.point;
 
 
