@@ -19,6 +19,7 @@ public class MutantController : NetworkBehaviour
     private readonly string characterTag = "Character";
     private Vector3 targetPosition;
     private bool inRange;
+    private Vector3 baseDirection;
   
 
     private void Start()
@@ -28,19 +29,27 @@ public class MutantController : NetworkBehaviour
         health = maxHealth;
         healthBar.SetHealth(health);
         healthBar.SetMaxHealth(maxHealth);
+        if(gameObject.tag == "Team1")
+        {
+            baseDirection= new(-1.0f, 0.0f, -1.0f);
+        }
+        else if (gameObject.tag == "Team2")
+        {
+            baseDirection = new(1.0f, 0.0f, 1.0f);
+        }
+        baseDirection.Normalize();
     }
+    
 
     private void FixedUpdate()
     {
         if (!inRange)
         {
 
-        Vector3 direction = new(-3.0f / 2.0f, 0.0f, -1.0f);
-        direction.Normalize();
         if (!isDying.Value)
         {
-                transform.rotation = Quaternion.LookRotation(direction);
-                rb.velocity = speed * Time.fixedDeltaTime * direction;
+                transform.rotation = Quaternion.LookRotation(baseDirection);
+                rb.velocity = speed * Time.fixedDeltaTime * baseDirection;
         } 
         } 
         if (inRange && !isAttacking.Value) 
@@ -62,16 +71,19 @@ public class MutantController : NetworkBehaviour
     }
     private void OnCollisionStay(Collision collision)
     {
-        PlayerController character = collision.collider.GetComponent<PlayerController>();
-        if (character != null && !isDying.Value)
+        //PlayerController character = collision.collider.GetComponent<PlayerController>();
+        if (!isDying.Value && ((collision.gameObject.CompareTag("Team1") && gameObject.tag == "Team2") || (collision.gameObject.CompareTag("Team2") && gameObject.tag == "Team1")))
         {
-            Vector3 direction = -transform.position + character.transform.position;
+            Vector3 direction = -transform.position + collision.transform.position;
             direction.y = 0;
             transform.rotation = Quaternion.LookRotation(direction);
             if(attackTime == 0 || Time.time - attackTime > 2.2)
             {
-            character.TakeDamage(damage);
-            attackTime = Time.time;
+                PlayerController character = collision.collider.GetComponent<PlayerController>();
+                if (character) { character.TakeDamage(damage); }
+                MutantController npc = collision.collider.GetComponent<MutantController>();
+                if (npc) { npc.TakeDamage(damage); }
+                attackTime = Time.time;
             }
             rb.velocity = Vector3.zero;
             isAttacking.Value=true;
@@ -79,10 +91,8 @@ public class MutantController : NetworkBehaviour
     }
     private void OnCollisionExit(Collision collision)
     {
-        Vector3 direction = new(-3.0f / 2.0f, 0.0f, -1.0f);
-        direction = Vector3.Normalize(direction);
-        transform.rotation = originalRotation;
-        rb.velocity = direction * speed * Time.fixedDeltaTime;
+         transform.rotation = originalRotation;
+        rb.velocity = baseDirection * speed * Time.fixedDeltaTime;
         isAttacking.Value = false;
     }
     public bool IsAttacking()
@@ -114,10 +124,11 @@ public class MutantController : NetworkBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.CompareTag(characterTag))
+        if ((other.gameObject.CompareTag("Team1") && gameObject.tag == "Team2")|| (other.gameObject.CompareTag("Team2") && gameObject.tag == "Team1"))
         {
    
                 targetPosition = other.transform.position;
+            targetPosition.y = 0;
                 inRange = true;
     
         }
@@ -136,5 +147,8 @@ public class MutantController : NetworkBehaviour
     {
         inRange = false;
     }
-
+    public void SetTag(string tag)
+    {
+        gameObject.tag = tag;
+    }
 }
