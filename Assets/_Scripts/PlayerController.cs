@@ -98,11 +98,10 @@ public class PlayerController : NetworkBehaviour {
             {
                 //Debug.Log("The ray hit at: " + hit.point);
                 navMeshAgent.destination = hit.point;
-
-
             }
         }
         float distanceToTarget = Vector3.Distance(transform.position, navMeshAgent.destination);
+
         if (distanceToTarget < 0.1f)
         {
             isRunning.Value = false;
@@ -110,7 +109,7 @@ public class PlayerController : NetworkBehaviour {
         else
         {
             isRunning.Value = true;
-            transform.forward = navMeshAgent.velocity; //new Vector3(navMeshAgent.velocity.x, navMeshAgent.velocity.y, navMeshAgent.velocity.z);
+                  transform.forward = navMeshAgent.velocity; //new Vector3(navMeshAgent.velocity.x, navMeshAgent.velocity.y, navMeshAgent.velocity.z);
         }
 
         if (Input.GetKeyDown(KeyCode.Space))

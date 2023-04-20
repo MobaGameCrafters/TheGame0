@@ -48,6 +48,7 @@ public class MutantController : NetworkBehaviour
             float distance = Vector3.Distance(transform.position, targetPosition);
             Vector3 direction = (targetPosition - transform.position);
             direction.Normalize();
+            direction.y = 0f;
             if (!isDying.Value && distance>1f)
             {
             transform.rotation = Quaternion.LookRotation(direction);
