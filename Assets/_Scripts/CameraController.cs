@@ -3,27 +3,47 @@ using UnityEngine;
 
 public class CameraController : MonoBehaviour {
 
-    [SerializeField] private CinemachineVirtualCamera followCamera;
-
-    private void Awake()
+     [SerializeField] private CinemachineVirtualCamera followCamera;
+    private readonly float cameraSpeed = 10f;
+    private readonly float borderThickness = 10f;
+    private void Start()
     {
-
+        Cursor.lockState = CursorLockMode.Confined;
     }
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (!Application.isFocused) return;
+
+        Vector3 currentPosition = transform.position;
+
+
+        if (Input.mousePosition.x >= Screen.width - borderThickness)
         {
-            // Debug.Log("Here");
-            //   followCamera.Priority = 20;
-            // followCamera.Follow = GetComponent;
-            // gameObject.
-            // followCamera.gameObject.SetActive(true);
+            currentPosition.x += cameraSpeed * Time.deltaTime;
+        }
+        else if (Input.mousePosition.x <= borderThickness)
+        {
+            currentPosition.x -= cameraSpeed * Time.deltaTime;
+        }
+        if (Input.mousePosition.y >= Screen.height - borderThickness)
+        {
+            currentPosition.z += cameraSpeed * Time.deltaTime;
+        }
+        else if (Input.mousePosition.y <= borderThickness)
+        {
+            currentPosition.z -= cameraSpeed * Time.deltaTime;
+        }
+        transform.position = currentPosition;
 
+        if(Input.GetKeyDown(KeyCode.Escape))
+        {
+            Cursor.lockState = CursorLockMode.None;
         }
-        if (Input.GetKeyUp(KeyCode.Space))
-        {// followCamera.gameObject.SetActive(false);
-         // followCamera.Priority = 0;
-        }
+
     }
-
+    private void OnDestroy()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
 }
