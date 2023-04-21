@@ -83,7 +83,7 @@ GameObject:
   - component: {fileID: 8576446061767199681}
   m_Layer: 0
   m_Name: Erika Archer
-  m_TagString: Character
+  m_TagString: Team2
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

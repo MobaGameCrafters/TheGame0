@@ -127,6 +127,7 @@ public class PlayerController : NetworkBehaviour {
 
         Debug.Log("sp:" + startPosition.Value + "arp" + arrowSpawningPoint.position);
         GameObject newArrow = Instantiate(arrow, startPosition.Value, arrowRotation);
+        newArrow.GetComponent<ArrowController>().SetTag(gameObject.tag);
         newArrow.GetComponent<NetworkObject>().SpawnWithOwnership(serveRpcParams.Receive.SenderClientId);
     }
     private void Rotate()

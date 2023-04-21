@@ -12,8 +12,8 @@ public class MinionSpawnerController : NetworkBehaviour
     void Start()
     {
         SpawnMinionServerRpc();
-        spawnTime = Time.time;  
-    }
+        spawnTime = Time.time;
+     }
 
     // Update is called once per frame
     void Update()
@@ -27,7 +27,8 @@ public class MinionSpawnerController : NetworkBehaviour
     [ServerRpc]
     void SpawnMinionServerRpc()
     {
-        GameObject minion = Instantiate(mutant);
+        GameObject minion = Instantiate(mutant, transform.position, Quaternion.identity);
+        minion.GetComponent<MutantController>().SetTag(gameObject.tag);
         minion.GetComponent<NetworkObject>().Spawn();
     }
 }

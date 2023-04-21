@@ -7,6 +7,8 @@ TagManager:
   - Character
   - Minion
   - FollowCamera
+  - Team1
+  - Team2
   layers:
   - Default
   - TransparentFX
