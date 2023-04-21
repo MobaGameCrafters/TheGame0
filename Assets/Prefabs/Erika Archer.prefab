@@ -180,6 +180,7 @@ MonoBehaviour:
   gameInput: {fileID: 368272235703204936}
   followCamera: {fileID: 3152377848674527971}
   arrowSpawningPoint: {fileID: 1799180477983589106}
+  healthBar: {fileID: 5367282485537338455}
 --- !u!114 &8629415621007938481
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -228,10 +229,10 @@ Rigidbody:
     m_Bits: 0
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
-  m_UseGravity: 0
+  m_UseGravity: 1
   m_IsKinematic: 1
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 4
   m_CollisionDetection: 0
 --- !u!136 &-1938589400031422062
 CapsuleCollider:
@@ -3686,7 +3687,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1844637073171769500, guid: 809b40f60457c8a4caa3f305a5588233, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3698,6 +3699,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1256917814899264970, guid: 809b40f60457c8a4caa3f305a5588233, type: 3}
   m_PrefabInstance: {fileID: 3701171289649211852}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &5367282485537338455 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8728355780397014427, guid: 809b40f60457c8a4caa3f305a5588233, type: 3}
+  m_PrefabInstance: {fileID: 3701171289649211852}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f4d30f962eaa9d4f8ea741809b04dc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &4482336619791274268
 PrefabInstance:
   m_ObjectHideFlags: 0

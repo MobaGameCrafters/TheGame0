@@ -44,9 +44,9 @@ public class ArrowController : MonoBehaviour {
     }
     void OnTriggerEnter(Collider other)
     {
-        NetworkObject arrow = gameObject.GetComponent<NetworkObject>();
-        if ((other.gameObject.CompareTag("Team1") && gameObject.tag == "Team2") || (other.gameObject.CompareTag("Team2") && gameObject.tag == "Team1")) { 
-            PlayerController character = other.GetComponent<PlayerController>();
+        //NetworkObject arrow = gameObject.GetComponent<NetworkObject>();
+        if ((other.gameObject.CompareTag("Team1") && gameObject.tag == "Team2") || (other.gameObject.CompareTag("Team2") && gameObject.tag == "Team1")) {
+            /*PlayerController character = other.GetComponent<PlayerController>();
         if (character != null && arrow.OwnerClientId != character.OwnerClientId)
         {
             character.TakeDamage(damage);
@@ -55,9 +55,11 @@ public class ArrowController : MonoBehaviour {
         MutantController minion = other.GetComponent<MutantController>();
         if (minion != null)
         {
-            minion.TakeDamage(damage);
+            minion.TakeDamage(damage);*/
+            HealthBar healthBar = other.GetComponentInChildren<HealthBar>();
+            healthBar.TakeDamage(damage);
             Destroy(gameObject);
-        }
+        
         }
     }
     public void SetTag(string tag)

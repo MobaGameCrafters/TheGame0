@@ -4,7 +4,7 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.TextCore.Text;
 
-public class MutantController : NetworkBehaviour
+public class MutantController : NetworkBehaviour, IHealthController
 {
     Rigidbody rb;
     private readonly int damage = 5;
@@ -12,11 +12,9 @@ public class MutantController : NetworkBehaviour
     private NetworkVariable<bool> isDying = new(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     private readonly float speed = 30f;
     private float attackTime=0;
-    private int health;
     private readonly int maxHealth = 21;
     private Quaternion originalRotation;
     [SerializeField] HealthBar healthBar;
-    private readonly string characterTag = "Character";
     private Vector3 targetPosition;
     private bool inRange;
     private Vector3 baseDirection;
@@ -26,8 +24,6 @@ public class MutantController : NetworkBehaviour
     {
         rb = GetComponent<Rigidbody>();
         originalRotation = transform.rotation;
-        health = maxHealth;
-        healthBar.SetHealth(health);
         healthBar.SetMaxHealth(maxHealth);
         if(gameObject.tag == "Team1")
         {
@@ -71,18 +67,16 @@ public class MutantController : NetworkBehaviour
     }
     private void OnCollisionStay(Collision collision)
     {
-        //PlayerController character = collision.collider.GetComponent<PlayerController>();
-        if (!isDying.Value && ((collision.gameObject.CompareTag("Team1") && gameObject.tag == "Team2") || (collision.gameObject.CompareTag("Team2") && gameObject.tag == "Team1")))
+        ArrowController arrow = collision.collider.GetComponent<ArrowController>();
+             if (!isDying.Value && ((collision.gameObject.CompareTag("Team1") && gameObject.tag == "Team2") || (collision.gameObject.CompareTag("Team2") && gameObject.tag == "Team1")) && arrow == null)
         {
             Vector3 direction = -transform.position + collision.transform.position;
             direction.y = 0;
             transform.rotation = Quaternion.LookRotation(direction);
             if(attackTime == 0 || Time.time - attackTime > 2.2)
             {
-                PlayerController character = collision.collider.GetComponent<PlayerController>();
-                if (character) { character.TakeDamage(damage); }
-                MutantController npc = collision.collider.GetComponent<MutantController>();
-                if (npc) { npc.TakeDamage(damage); }
+                HealthBar healthBar = collision.gameObject.GetComponentInChildren<HealthBar>();
+                healthBar.TakeDamage(damage);
                 attackTime = Time.time;
             }
             rb.velocity = Vector3.zero;
@@ -103,28 +97,19 @@ public class MutantController : NetworkBehaviour
     {
         return isDying.Value;
     }
-    public void TakeDamage(int damage)
+      public void Death()
     {
-        health = health - damage;
-        if (health <= 0)
-        {
-            health = 0;
-            rb.velocity = Vector3.zero;
-            isDying.Value = true;
-            gameObject.GetComponent<Collider>().enabled = false;
-            Invoke(nameof(Death), 2.0f);
-        }
-        healthBar.SetHealth(health);
-
-    }
-    private void Death()
-    {
-        Destroy(gameObject);
+        rb.velocity = Vector3.zero;
+        isDying.Value = true;
+        gameObject.GetComponent<Collider>().enabled = false;
+        Destroy(gameObject,2f);
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if ((other.gameObject.CompareTag("Team1") && gameObject.tag == "Team2")|| (other.gameObject.CompareTag("Team2") && gameObject.tag == "Team1"))
+        ArrowController arrow = other.GetComponent<ArrowController>();
+        if (arrow == null) { 
+        if (((other.gameObject.CompareTag("Team1") && gameObject.tag == "Team2")|| (other.gameObject.CompareTag("Team2") && gameObject.tag == "Team1")))
         {
    
                 targetPosition = other.transform.position;
@@ -132,15 +117,20 @@ public class MutantController : NetworkBehaviour
                 inRange = true;
     
         }
+        }
     }
     private void OnTriggerStay(Collider other)
     {
-        if (other.gameObject.CompareTag(characterTag))
+        ArrowController arrow = other.GetComponent<ArrowController>();
+        if (arrow == null)
         {
+            if ((other.gameObject.CompareTag("Team1") && gameObject.tag == "Team2") || (other.gameObject.CompareTag("Team2") && gameObject.tag == "Team1"))
+            {
 
-            targetPosition = other.transform.position;
-            inRange = true;
+                targetPosition = other.transform.position;
+                inRange = true;
 
+            }
         }
     }
     private void OnTriggerExit(Collider other)
@@ -150,5 +140,9 @@ public class MutantController : NetworkBehaviour
     public void SetTag(string tag)
     {
         gameObject.tag = tag;
+    }
+    public string GetTag()
+    {
+        return gameObject.tag;
     }
 }

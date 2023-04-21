@@ -9,7 +9,8 @@ using UnityEngine.AI;
 using UnityEngine.UIElements;
 
 
-public class PlayerController : NetworkBehaviour {
+public class PlayerController : NetworkBehaviour, IHealthController
+{
 
     [SerializeField] private GameObject arrow;
     [SerializeField] private GameInput gameInput;
@@ -26,10 +27,11 @@ public class PlayerController : NetworkBehaviour {
     private NetworkVariable<Vector3> endPosition = new NetworkVariable<Vector3>(Vector3.zero, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     private NetworkVariable<Vector3> target = new NetworkVariable<Vector3>(Vector3.zero, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     Rigidbody rb;
-    private float health = 21;
+    private int maxHealth = 21;
     private Vector3 direction;
     //private NetworkVariable<Quaternion> myQuaternion = new NetworkVariable<Quaternion>(Quaternion.identity, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     private NavMeshAgent navMeshAgent;
+    [SerializeField] HealthBar healthBar;
 
 
 
@@ -42,6 +44,7 @@ public class PlayerController : NetworkBehaviour {
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
+        healthBar.SetMaxHealth(maxHealth);
         navMeshAgent.speed = speed;
         navMeshAgent.autoBraking = true;
     }
@@ -97,10 +100,9 @@ public class PlayerController : NetworkBehaviour {
 
 
     }
-
-    public void TakeDamage(int damage)
+    public void Death()
     {
-        health = Math.Max(0, health - damage);
+
     }
     private void FireArrow()
     {
@@ -175,5 +177,7 @@ public class PlayerController : NetworkBehaviour {
     {
         return endPosition.Value;
     }
-
+    public string GetTag() {
+        return gameObject.tag;
+    }
 }
