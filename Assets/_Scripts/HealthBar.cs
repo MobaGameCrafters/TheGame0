@@ -1,42 +1,78 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.UI;
 
+
+
+public interface IHealthController
+{
+    void Death();
+    string GetTag();
+}
 public class HealthBar : MonoBehaviour
 {
-    public GameObject mainCamera;
-    private Transform healthBar;
-    private Transform healthBarMax;
-    private float healthBarWidth;
+    public Camera mainCamera;
+    private Image healthBar;
+    private Image healthBarMax;
     private int health;
     private int maxHealth;
+    public IHealthController healthController;
     private void Start()
     {
-        mainCamera = Camera.main.gameObject;
-        healthBar = transform.Find("CurrentHP");
-        healthBarMax = transform.Find("MaxHP");
-        healthBarWidth = healthBar.transform.localScale.x;
+        Image[] images = GetComponentsInChildren<Image>();
+        foreach (Image image in images)
+        {
+            if (image.name == "Foreground")
+            {
+                healthBar = image;
+            }
+            else if (image.name == "Background")
+            {
+                healthBarMax = image;
+            }
+        }
+         GameObject parentObject = transform.parent.gameObject;
+        mainCamera = Camera.main;
+        PlayerController playerController = parentObject.GetComponent<PlayerController>();
+        MutantController mutantController = parentObject.GetComponent<MutantController>();
+
+        if (playerController != null)
+        {
+            healthController = playerController;
+        }
+        else if (mutantController != null)
+        {
+            healthController = mutantController;
+        }
+        string Team = healthController.GetTag();
+        if (Team == "Team1") { healthBar.color = new Color(52f / 255f, 152f / 255f, 219f / 255f); }
+        else if (Team == "Team2") { healthBar.color= new Color(40f / 255f, 180f / 255f, 99f / 255f); }
     }
 
     private void Update()
     {
-        healthBar.transform.localScale = new Vector3(healthBarWidth * health / maxHealth, healthBar.transform.localScale.y, healthBar.transform.localScale.z);
-        //healthBar.transform.position = new Vector3(healthBar.transform.position.x - (healthBarWidth - healthBarWidth * health / maxHealth) / 4, healthBar.transform.position.y, healthBar.transform.position.z);
-        healthBarMax.transform.localScale = new Vector3(Mathf.Min(healthBarWidth - healthBarWidth * health / maxHealth, healthBarWidth), healthBar.transform.localScale.y, healthBar.transform.localScale.z);
-        //healthBarMax.transform.position = new Vector3(healthBarMax.transform.position.x - (healthBarWidth - healthBarWidth * health / maxHealth) / 4, healthBarMax.transform.position.y, healthBarMax.transform.position.z);
-    }
-    private void LateUpdate()
-    {
-        transform.LookAt(transform.position + mainCamera.transform.rotation * Vector3.forward,
-            mainCamera.transform.rotation * Vector3.up);
-    }
-    public void SetHealth(int healthInput)
-    {
-        health = healthInput;
+
+        healthBar.fillAmount = health / maxHealth;
+        Vector2 foregroundSize = healthBar.rectTransform.sizeDelta;
+        foregroundSize.x = healthBarMax.rectTransform.sizeDelta.x* health / maxHealth;
+        healthBar.rectTransform.sizeDelta = foregroundSize;
+        Vector3 rotation = transform.position - mainCamera.transform.position;
+        rotation.x = 0;
+        transform.rotation = Quaternion.LookRotation(rotation);
     }
     public void SetMaxHealth(int healthInput)
     {
         health = healthInput;
         maxHealth = healthInput;
+    }
+    public void TakeDamage(int damage)
+    {  
+        health=Math.Max(0,health - damage);
+        if (health <= 0) {
+        healthController.Death();
+        }
     }
 }
