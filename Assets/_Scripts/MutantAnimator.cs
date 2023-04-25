@@ -15,9 +15,13 @@ public class MutantAnimator : MonoBehaviour
 
     private void Update()
     {
-        animator.SetBool(Is_Dying, controller.IsDying());
-        animator.SetBool(Is_Attacking, controller.IsAttacking());
+       // animator.SetBool(Is_Dying, controller.IsDying());
+       //animator.SetBool(Is_Attacking, controller.IsAttacking());
     }
-
+    public void SetAnimationState(MutantAnimationState state)
+    {
+        animator.SetBool(Is_Dying, state.IsDying);
+        animator.SetBool(Is_Attacking, state.IsAttacking);
+    }
 }
 

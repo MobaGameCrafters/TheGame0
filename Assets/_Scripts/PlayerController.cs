@@ -7,7 +7,11 @@ using Unity.VisualScripting.Antlr3.Runtime.Tree;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UIElements;
-
+public class PlayerAnimationState
+{
+    public bool isShooting { get; set; }
+    public bool isRunning { get; set; }
+}
 
 public class PlayerController : NetworkBehaviour, IHealthController
 {
@@ -16,12 +20,14 @@ public class PlayerController : NetworkBehaviour, IHealthController
     [SerializeField] private GameInput gameInput;
     [SerializeField] CinemachineVirtualCamera followCamera;
     [SerializeField] private Transform arrowSpawningPoint;
+    [SerializeField] private PlayerAnimator animator;
     private float speed = 7f;
 
-
-    private NetworkVariable<bool> isRunning = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
-    private NetworkVariable<bool> isShooting = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
-    //private float totalDistance; 
+    private NetworkVariable<PlayerAnimationState> animationState = new(
+new PlayerAnimationState() { isRunning = false, isShooting = false },
+NetworkVariableReadPermission.Everyone,
+NetworkVariableWritePermission.Owner
+);
     private float MainAttackFireTime = 0;
     private NetworkVariable<Vector3> startPosition = new NetworkVariable<Vector3>(Vector3.zero, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     private NetworkVariable<Vector3> endPosition = new NetworkVariable<Vector3>(Vector3.zero, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
@@ -29,7 +35,6 @@ public class PlayerController : NetworkBehaviour, IHealthController
     Rigidbody rb;
     private int maxHealth = 21;
     private Vector3 direction;
-    //private NetworkVariable<Quaternion> myQuaternion = new NetworkVariable<Quaternion>(Quaternion.identity, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     private NavMeshAgent navMeshAgent;
     [SerializeField] HealthBar healthBar;
 
@@ -55,8 +60,9 @@ public class PlayerController : NetworkBehaviour, IHealthController
         if (Input.GetMouseButtonDown(0) && Time.time - MainAttackFireTime > 1)
         {
             MainAttackFireTime = Time.time;
-            isShooting.Value = true;
-            isRunning.Value = false;
+            animationState.Value.isShooting = true;
+            animationState.Value.isRunning = false;
+            animator.SetAnimationState(animationState.Value);
             RaycastHit hit;
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out hit))
@@ -76,18 +82,21 @@ public class PlayerController : NetworkBehaviour, IHealthController
             if (Physics.Raycast(ray, out hit))
             {
                 navMeshAgent.destination = hit.point;
+                Debug.Log(navMeshAgent.destination.x + " " + navMeshAgent.destination.y + " " + navMeshAgent.destination.z);
             }
         }
         float distanceToTarget = Vector3.Distance(transform.position, navMeshAgent.destination);
 
         if (distanceToTarget < 0.1f)
         {
-            isRunning.Value = false;
+            animationState.Value.isRunning = false;
+            animator.SetAnimationState(animationState.Value);
         }
         else
         {
-            isRunning.Value = true;
-           // transform.forward = navMeshAgent.velocity; //new Vector3(navMeshAgent.velocity.x, navMeshAgent.velocity.y, navMeshAgent.velocity.z);
+            animationState.Value.isRunning = true;
+            animator.SetAnimationState(animationState.Value);
+            // transform.forward = navMeshAgent.velocity; //new Vector3(navMeshAgent.velocity.x, navMeshAgent.velocity.y, navMeshAgent.velocity.z);
 
         }
 
@@ -121,7 +130,8 @@ public class PlayerController : NetworkBehaviour, IHealthController
         }
         Quaternion arrowRotation = Quaternion.Euler(new Vector3(0, angle, 0));
         FireArrowServerRpc(arrowRotation, new ServerRpcParams());
-        isShooting.Value = false;
+        animationState.Value.isShooting = false;
+        animator.SetAnimationState(animationState.Value);
     }
     [ServerRpc]
     private void FireArrowServerRpc(Quaternion arrowRotation, ServerRpcParams serveRpcParams)
@@ -135,7 +145,7 @@ public class PlayerController : NetworkBehaviour, IHealthController
     private void Rotate()
     {
         Vector3 targetDirection;
-        if (!isRunning.Value)
+        if (!animationState.Value.isRunning)
         {
             targetDirection = target.Value - transform.position;
         }
@@ -165,18 +175,10 @@ public class PlayerController : NetworkBehaviour, IHealthController
         rb.MoveRotation(targetRotation);
         rb.freezeRotation = false;
     }
-    public bool IsRunning()
-    {
-        return isRunning.Value;
-    }
-    public bool IsShooting()
-    {
-        return isShooting.Value;
-    }
-    public Vector3 EndPosition()
+ /*    public Vector3 EndPosition()
     {
         return endPosition.Value;
-    }
+    }*/
     public string GetTag() {
         return gameObject.tag;
     }
