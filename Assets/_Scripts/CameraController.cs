@@ -4,7 +4,7 @@ using UnityEngine;
 public class CameraController : MonoBehaviour {
 
      [SerializeField] private CinemachineVirtualCamera followCamera;
-    private readonly float cameraSpeed = 10f;
+    private readonly float cameraSpeed = 100f;
     private readonly float borderThickness = 10f;
     private void Start()
     {

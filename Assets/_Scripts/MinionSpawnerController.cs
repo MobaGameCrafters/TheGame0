@@ -3,32 +3,30 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class MinionSpawnerController : NetworkBehaviour
+public class MinionSpawnerController : MonoBehaviour
 {
     [SerializeField] GameObject mutant;
+    [SerializeField] string line;
     private float spawnTime;
     
-    // Start is called before the first frame update
     void Start()
     {
-        SpawnMinionServerRpc();
         spawnTime = Time.time;
      }
 
-    // Update is called once per frame
     void Update()
     {
+
+        if (!NetworkManager.Singleton.IsServer) return;
         if (Time.time - spawnTime > 5)
         {
-        SpawnMinionServerRpc();
+        //SpawnMinionServerRpc();
             spawnTime = Time.time;
+            //spawn = false;
+            GameObject minion = Instantiate(mutant, transform.position, Quaternion.identity);
+            minion.GetComponent<MutantController>().SetTag(gameObject.tag);
+            minion.GetComponent<MutantController>().SetLine(line);
+            minion.GetComponent<NetworkObject>().Spawn();
         }
-    }
-    [ServerRpc]
-    void SpawnMinionServerRpc()
-    {
-        GameObject minion = Instantiate(mutant, transform.position, Quaternion.identity);
-        minion.GetComponent<MutantController>().SetTag(gameObject.tag);
-        minion.GetComponent<NetworkObject>().Spawn();
     }
 }
