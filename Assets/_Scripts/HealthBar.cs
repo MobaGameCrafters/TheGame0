@@ -20,6 +20,7 @@ public class HealthBar : MonoBehaviour
     private int health;
     private int maxHealth;
     public IHealthController healthController;
+    private bool isAlive = true;
     private void Start()
     {
         Image[] images = GetComponentsInChildren<Image>();
@@ -73,6 +74,11 @@ public class HealthBar : MonoBehaviour
         health=Math.Max(0,health - damage);
         if (health <= 0) {
         healthController.Death();
+            isAlive = false;
         }
+    }
+    public bool IsAlive() 
+    { 
+        return isAlive; 
     }
 }

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class ShutDown : MonoBehaviour
@@ -18,8 +19,12 @@ public class ShutDown : MonoBehaviour
         {
             obj.Despawn();
         }
+        foreach (GameObject obj in GameObject.FindObjectsOfType<GameObject>())
+        {
+            Destroy(obj);
+        }
         NetworkManager.Singleton.Shutdown();
-
+        Cursor.lockState = CursorLockMode.None;
         // Quit the application
         Application.Quit();
     }
