@@ -8,6 +8,7 @@ public class MutantAnimator : MonoBehaviour
     [SerializeField] MutantController controller;
     private const string Is_Attacking = "IsAttacking";
     private const string Is_Dying = "IsDying";
+    private const string Is_Running = "IsRunning";
     private void Awake()
     {
         animator = GetComponent<Animator>();
@@ -22,6 +23,7 @@ public class MutantAnimator : MonoBehaviour
     {
         animator.SetBool(Is_Dying, state.IsDying);
         animator.SetBool(Is_Attacking, state.IsAttacking);
+        animator.SetBool(Is_Running, state.IsRunning);
     }
 }
 

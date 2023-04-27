@@ -8,6 +8,7 @@ public class MinionSpawnerController : MonoBehaviour
     [SerializeField] GameObject mutant;
     [SerializeField] string line;
     private float spawnTime;
+    private bool spawn = true;
     
     void Start()
     {
@@ -18,7 +19,7 @@ public class MinionSpawnerController : MonoBehaviour
     {
 
         if (!NetworkManager.Singleton.IsServer) return;
-        if (Time.time - spawnTime > 5)
+        if (Time.time - spawnTime > 5 && spawn)
         {
         //SpawnMinionServerRpc();
             spawnTime = Time.time;

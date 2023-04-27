@@ -52,6 +52,7 @@ NetworkVariableWritePermission.Owner
         healthBar.SetMaxHealth(maxHealth);
         navMeshAgent.speed = speed;
         navMeshAgent.autoBraking = true;
+        //navMeshAgent.stoppingDistance = 0.5f;
     }
     private void Update()
     {
